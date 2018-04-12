@@ -4,6 +4,7 @@
 */
 // Before: composer autoload
 require_once 'vendor\autoload.php';
+require_once '..\api_tcintegrator\indata_ws\inDataLogic.php';
 
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
@@ -23,29 +24,44 @@ date_default_timezone_set('America/Bogota');
 class Integrator {
 
 //--------------------------------------------------------------------
-// Return Array Cliente/InData
+    // Return Array Cliente/InData from CSV
     public static function ClientInData($data){
 
+      $tc = new inDataLogic();
+      $idx = 0;
+
             try {
+
                     array_shift($data);
                     $array_client = [];
+
                     foreach ($data as $key => $value) {
-                          # Formato ClienteInData
-                          $array_client = array(
-                          'idCustomer' => trim(strval($data[$key][0])),
-                          'identification' => trim(strval($data[$key][2])),
-                          'businessName' => trim(strval($data[$key][1])),
-                          'tradename' => trim(strval($data[$key][2])),
-                          'credit' => floatval($data[$key][4]),
-                          'isBlocked' => 0,
-                          'state' => 1,
-                          'availableCredit' => floatval($data[$key][5]),
-                          'idPricelist' => intval($data[$key][9])
-                          );
-                    break;
+                            # Formato ClienteInData
+                            $array_client = array(
+                            'idCustomer' => trim(strval($data[$key][0])),
+                            'identification' => trim(strval($data[$key][2])),
+                            'businessName' => Integrator::CleanString($data[$key][1]),
+                            'tradename' => trim(strval($data[$key][2])),
+                            'credit' => floatval($data[$key][4]),
+                            'isBlocked' => 0,
+                            'state' => 1,
+                            'availableCredit' => floatval($data[$key][5]),
+                            'idPricelist' => intval($data[$key][9])
+                            );
+                            $idx++;
+
+                            // Insert On DataBase with API
+                            try {
+                              $tc->createCustomerTakeOrder($array_client);
+                              Integrator::LogMigration('ClientImport', $idx, $array_client[idCustomer], 'Sending', 'ClientInData');
+                            } catch (Exception $e) {
+                              Integrator::LogMigration('Exception Catched: ', $idx, $array_client[idCustomer], $e, 'ClientInData');
+                            }
+
+                        //break;
                     }
                     //print_r($array_client);
-                return $array_client;
+                return $tc;
 
             } catch (Exception $e) {
 
@@ -58,28 +74,39 @@ class Integrator {
 
 
 //--------------------------------------------------------------------
-// Return Array Credit/InData
+    // Return Array Credit/InData from CSV
     public static function CreditInData($data){
+
+      $tc = new inDataLogic();
+      $idx = 0;
 
             try {
                     array_shift($data);
                     $array_credit = [];
+
                     foreach ($data as $key => $value) {
-                          # Formato CreditInData
-                          $array_credit = array(
-                            'idCustomer'      => trim(strval($data[$key][0])),
-                            'credit'          => floatval($data[$key][4]),
-                            'availableCredit' => floatval($data[$key][5])
-                          );
-                    break;
+                            # Formato CreditInData
+                            $array_credit = array(
+                              'idCustomer'      => trim(strval($data[$key][0])),
+                              'credit'          => floatval($data[$key][4]),
+                              'availableCredit' => floatval($data[$key][5])
+                            );
+                            // Insert On DataBase with API
+                            try {
+                              $tc->setStatusCredit($array_credit);;
+                              Integrator::LogMigration('CreditImport', $idx, $array_credit[idCustomer], 'Sending', 'CreditInData');
+                            } catch (Exception $e) {
+                              Integrator::LogMigration('Exception Catched: ', $idx, $array_credit[idCustomer], $e, 'CreditInData');
+                            }
+
+                            //break;
                     }
                     //print_r($array_credit);
-
-                return $array_credit;
+                return $tc;
 
             } catch (Exception $e) {
 
-                $type = 'WalletInData';
+                $type = 'CreditInData';
                 $log = new Integrator();
                 $log->CreateLog($type, $e);
 
@@ -88,32 +115,46 @@ class Integrator {
 
 
 //--------------------------------------------------------------------
-// Return Array Sede/InData
+    // Return Array Sede/InData from CSV
     public static function SeatInData($data){
+
+      $tc = new inDataLogic();
+      $idx = 0;
 
             try {
                     array_shift($data);
                     $array_seat = [];
+
                     foreach ($data as $key => $value) {
-                          # Formato SeatInData
-                          $array_seat = array(
-                          'idCustomer' => trim(strval($data[$key][0])),
-                          'identification' => trim(strval($data[$key][2])),
-                          'idCustomerOffice' => trim(strval($data[$key][2]."-0")),
-                          'address' => trim(strval($data[$key][6])),
-                          'name' => 'Principal',
-                          'countryId' => 'null',
-                          'countryName' => 'Colombia',
-                          'cityId' => 'null',
-                          'cityName' => 'Cali',
-                          'contactPerson1' => trim(strval($data[$key][3])),
-                          'cellphoneContact' => 'null',
-                          'phoneNumber' => trim(strval($data[$key][7])),
-                          );
-                    break;
+                            # Formato SeatInData
+                            $array_seat = array(
+                            'idCustomer' => trim(strval($data[$key][0])),
+                            'identification' => trim(strval($data[$key][2])),
+                            'idCustomerOffice' => Integrator::CleanString($data[$key][2]/*.'-0'*/),
+                            'address' => trim(strval($data[$key][6])),
+                            'name' => 'Principal',
+                            'countryId' => '',
+                            'countryName' => '',
+                            'cityId' => trim(strval($data[$key][8])),
+                            'cityName' => '',
+                            'contactPerson1' => trim(strval($data[$key][3])),
+                            'cellphoneContact' => '',
+                            'phoneNumber' => trim(strval($data[$key][7])),
+                            );
+
+                            try {
+                              $tc->createCustomerOfficeTakeOrder($array_seat);;
+                              Integrator::LogMigration('SeatImport', $idx, $array_credit[idCustomer], 'Sending', 'SeatInData');
+                            } catch (Exception $e) {
+                              Integrator::LogMigration('Exception Catched: ', $idx, $array_credit[idCustomer], $e, 'SeatInData');
+                            }
+
+                            //break;
+
+                        // Insert On DataBase with API
                     }
                     //print_r($array_seat);
-                return $array_seat;
+                return $tc;
 
             } catch (Exception $e) {
 
@@ -127,28 +168,29 @@ class Integrator {
 
 
 //--------------------------------------------------------------------
-// Return Array Cartera/InData
+    // Return Array Cartera/InData from CSV
     public static function WalletInData($data){
+
+      $tc = new inDataLogic();
 
             try {
                     array_shift($data);
                     $array_wallet = [];
                     foreach ($data as $key => $value) {
-                          # Formato ClienteInData
-                          $array_wallet = array(
-                            'idCustomer' => trim(strval($data[$key][3])),
-                            'invoiceNumber' => trim(strval($data[$key][1]."-".$data[$key][2])),
-                            'totalValue' => round(($data[$key][4]), 2),
-                            'balance' => round(floatval($data[$key][5]), 2),
-                            'taxValue' => round(floatval(0), 2),
-                            'createDate' => Integrator::FunctionDate($data[$key][6]),
-                            'dueDate' => Integrator::FunctionDate($data[$key][7])
-                          );
-                    break;
+                            # Formato WalletInData
+                            $array_wallet = array(
+                              'idCustomer' => trim(strval($data[$key][3])),
+                              'invoiceNumber' => trim(strval($data[$key][1]."-".$data[$key][2])),
+                              'totalValue' => round(($data[$key][4]), 2),
+                              'balance' => round(floatval($data[$key][5]), 2),
+                              'taxValue' => round(floatval(0), 2),
+                              'createDate' => Integrator::FunctionDate($data[$key][6]),
+                              'dueDate' => Integrator::FunctionDate($data[$key][7])
+                            );
+                        // Insert On DataBase with API
+                        $tc->createCustomerCartera($array_wallet);;
                     }
-
                     //print_r($array_wallet);
-
                 return $array_wallet;
 
             } catch (Exception $e) {
@@ -161,37 +203,40 @@ class Integrator {
     }
 
 //--------------------------------------------------------------------
-      // Return Array Kardex/InData
+    // Return Array Kardex/InData from CSV
     public static function KardexInData($data){
+
+      $tc = new inDataLogic();
 
             try {
                     array_shift($data);
                     $array_kardex = [];
                     foreach ($data as $key => $value) {
-                          # Formato KardexInData
-                          $array_kardex = array(
-                          'idProduct' => trim(strval($data[$key][0])),
-                          'code' => trim(strval($data[$key][1])),
-                          'productRef' => trim(strval($data[$key][3])),
-                          'name' => trim(strval($data[$key][2])),
-                          'unit' => trim(strval($data[$key][5])),
-                          'currencySymbol' => '$',
-                          'description' => trim(strval($data[$key][2])),
-                          'idBrand' => 'null',
-                          'brand' => trim(strval($data[$key][3])),
-                          'idCategory' => 'null',
-                          'categoryName' => trim(strval($data[$key][13])),
-                          'idSubcategory' => 'null',
-                          'subcategoryName' => trim(strval($data[$key][14])),
-                          'idLine' => 'null',
-                          'lineName' => 'null',
-                          'supplierName' => 'null',
-                          'price' => 'null',
-                          'tax' => floatval($data[$key][17]),
-                          'discountPrice' => '0',
-                          'state' => 0
-                          );
-                    break;
+                            # Formato KardexInData
+                            $array_kardex = array(
+                            'idProduct' => trim(strval($data[$key][0])),
+                            'code' => (trim(strval($data[$key][1])) === '') ? trim(strval($data[$key][0])) : trim(strval($data[$key][1])),
+                            'productRef' => trim(strval($data[$key][3])),
+                            'name' => trim(strval($data[$key][2])),
+                            'unit' => trim(strval($data[$key][5])),
+                            'currencySymbol' => '$',
+                            'description' => trim(strval($data[$key][2])),
+                            'idBrand' => '',
+                            'brand' => trim(strval($data[$key][3])),
+                            'idCategory' => '',
+                            'categoryName' => trim(strval($data[$key][13])),
+                            'idSubcategory' => 'null',
+                            'subcategoryName' => trim(strval($data[$key][14])),
+                            'idLine' => '',
+                            'lineName' => '',
+                            'supplierName' => '',
+                            'price' => 'null',
+                            'tax' => floatval($data[$key][17]),
+                            'discountPrice' => '0',
+                            'state' => 1
+                            );
+                        // Insert On DataBase with API
+                        //$tc->createProduct($array_kardex);;
                     }
                     //print_r($array_kardex);
                 return $array_kardex;
@@ -203,19 +248,6 @@ class Integrator {
                 $log->CreateLog($type, $e);
 
             }
-    }
-
-//--------------------------------------------------------------------
-    // Crea Log
-    public function CreateLog($type, $e){
-
-        $log = new Logger($type);
-        $formatter = new LineFormatter(null, null, false, true);
-        $debugHandler = new StreamHandler('log\debug.log', Logger::DEBUG);
-        $debugHandler->setFormatter($formatter);
-        $log->pushHandler($debugHandler);
-        $log->debug($e);
-
     }
 
 //--------------------------------------------------------------------
@@ -302,6 +334,43 @@ class Integrator {
 
     }
 
+//--------------------------------------------------------------------
+    // Format DateInData
+    public static function CleanString($value)
+    {
+          $search = ['¥', '½', '¾', 'ö', '¢', 'ç', 'ä', 'å', '÷', 'ó', '«', '®', '©', '¸'];
+          $string = trim(strval(str_replace($search, 'Ñ', utf8_encode($value))));
+          return $string;
 
+    }
+
+//--------------------------------------------------------------------
+    // Crea Log
+    public function CreateLog($type, $e){
+
+        $log = new Logger($type);
+        $formatter = new LineFormatter(null, null, false, true);
+        $debugHandler = new StreamHandler('log\debug.log', Logger::DEBUG);
+        $debugHandler->setFormatter($formatter);
+        $log->pushHandler($debugHandler);
+        $log->debug($e);
+
+    }
+
+//--------------------------------------------------------------------
+    // Crea Log
+    public static function LogMigration($type, $idx, $key, $event, $from){
+
+        $log = new Logger($type);
+        $fecha = date('YmdH');
+        $f_dir = date('Ymd');
+        $p = getcwd().'\log\migracion-'.$f_dir.'\import-'. $from;
+        $s = '.log';        $formatter = new LineFormatter(null, null, false, true);
+        $noticeHandler = new StreamHandler($p.$fecha.$s, Logger::NOTICE);
+        $noticeHandler->setFormatter($formatter);
+        $log->pushHandler($noticeHandler);
+        $log->notice($event. ' in: Linea: #'.$idx. ', Campo Clave: '.$key);
+
+    }
 
 }

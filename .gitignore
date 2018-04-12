@@ -1,6 +1,7 @@
 composer.phar
 composer.lock
 control.php
+Integrator.php
 /vendor/
 /log/
 /public/
