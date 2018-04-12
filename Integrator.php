@@ -49,7 +49,6 @@ class Integrator {
                             'idPricelist' => intval($data[$key][9])
                             );
                             $idx++;
-
                             // Insert On DataBase with API
                             try {
                               $tc->createCustomerTakeOrder($array_client);
@@ -57,7 +56,6 @@ class Integrator {
                             } catch (Exception $e) {
                               Integrator::LogMigration('Exception Catched: ', $idx, $array_client[idCustomer], $e, 'ClientInData');
                             }
-
                         //break;
                     }
                     //print_r($array_client);
@@ -91,6 +89,7 @@ class Integrator {
                               'credit'          => floatval($data[$key][4]),
                               'availableCredit' => floatval($data[$key][5])
                             );
+                            $idx++;
                             // Insert On DataBase with API
                             try {
                               $tc->setStatusCredit($array_credit);;
@@ -98,7 +97,6 @@ class Integrator {
                             } catch (Exception $e) {
                               Integrator::LogMigration('Exception Catched: ', $idx, $array_credit[idCustomer], $e, 'CreditInData');
                             }
-
                             //break;
                     }
                     //print_r($array_credit);
@@ -141,17 +139,15 @@ class Integrator {
                             'cellphoneContact' => '',
                             'phoneNumber' => trim(strval($data[$key][7])),
                             );
-
+                            $idx++;
+                            // Insert On DataBase with API
                             try {
                               $tc->createCustomerOfficeTakeOrder($array_seat);;
                               Integrator::LogMigration('SeatImport', $idx, $array_credit[idCustomer], 'Sending', 'SeatInData');
                             } catch (Exception $e) {
                               Integrator::LogMigration('Exception Catched: ', $idx, $array_credit[idCustomer], $e, 'SeatInData');
                             }
-
                             //break;
-
-                        // Insert On DataBase with API
                     }
                     //print_r($array_seat);
                 return $tc;
@@ -364,9 +360,9 @@ class Integrator {
         $log = new Logger($type);
         $fecha = date('YmdH');
         $f_dir = date('Ymd');
-        $p = getcwd().'\log\migracion-'.$f_dir.'\import-'. $from;
-        $s = '.log';        $formatter = new LineFormatter(null, null, false, true);
-        $noticeHandler = new StreamHandler($p.$fecha.$s, Logger::NOTICE);
+        $dir = getcwd().'\log\migracion-'.$f_dir.'\import-'. $from .'-';
+        $ext = '.log';        $formatter = new LineFormatter(null, null, false, true);
+        $noticeHandler = new StreamHandler($dir.$fecha.$ext, Logger::NOTICE);
         $noticeHandler->setFormatter($formatter);
         $log->pushHandler($noticeHandler);
         $log->notice($event. ' in: Linea: #'.$idx. ', Campo Clave: '.$key);
