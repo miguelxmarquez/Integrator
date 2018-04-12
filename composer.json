@@ -1,0 +1,17 @@
+{
+    "name": "php/lalider",
+    "description": "Integrador La Lider",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "monolog/monolog": "^1.23",
+        "webmozart/assert": "^1.3",
+        "symfony/options-resolver": "^3.4"
+    },
+    "authors": [
+        {
+            "name": "Miguel Marquez",
+            "email": "miguelxmarquez@gmail.com"
+        }
+    ]
+}
