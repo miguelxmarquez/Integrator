@@ -1,6 +1,6 @@
 <?php
 /*
-*   # lalider/sedes.php
+*   # Integrator/sedes.php
 *
 */
 // Integrator Class
@@ -12,21 +12,20 @@ require_once '..\api_tcintegrator\indata_ws\inDataLogic.php';
 
   try {
 
-    // CSV Path/Name
-    $client_file = getcwd().'/public/' . 'cliente.CSV';
-    // New Resource Integrator
-    $resource = new Integrator();
-    $tc = new inDataLogic();
-    // Valida Ruta, Archivo y Lectura
-    $resource->ValidatePath($client_file);
-    // Execute Method for inDataLogic
-    print_r($resource->SeatInData($resource->ReadCSV($client_file)));
+      // CSV Path/Name
+      $client_file = getcwd().'/public/' . 'cliente.CSV';
+      // New Resource Integrator
+      $resource = new Integrator();
+      // Valida Ruta, Archivo y Lectura
+      $resource->ValidatePath($client_file);
+      // Execute Method for inDataLogic
+      print_r($resource->SeatInData($resource->ReadCSV($client_file)));
 
   } catch (Exception $e) {
 
-    $type = 'inDataLogic-Seat';
-    $log = new Integrator();
-    $log->CreateLog($type, $e);
+      $type = 'inDataLogic-Seat';
+      $log = new Integrator();
+      $log->CreateLog($type, $e);
 
   }
 

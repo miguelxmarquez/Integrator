@@ -1,6 +1,6 @@
 <?php
 /*
-*   # Integrator/cupos.php
+*   # Integrator/productos.php
 *
 */
 // Integrator Class
@@ -13,17 +13,17 @@ require_once '..\api_tcintegrator\indata_ws\inDataLogic.php';
   try {
 
       // CSV Path/Name
-      $client_file = getcwd().'/public/' . 'cliente.CSV';
+      $kardex_file = getcwd().'/public/' . 'kardex.CSV';
       // New Resource Integrator
       $resource = new Integrator();
       // Valida Ruta, Archivo y Lectura
-      $resource->ValidatePath($client_file);
+      $resource->ValidatePath($kardex_file);
       // Execute Method for inDataLogic
-      print_r($resource->CreditInData($resource->ReadCSV($client_file)));
+      print_r($resource->KardexInData($resource->ReadCSV($kardex_file)));
 
   } catch (Exception $e) {
 
-      $type = 'inDataLogic-Credit';
+      $type = 'inDataLogic-Client';
       $log = new Integrator();
       $log->CreateLog($type, $e);
 
