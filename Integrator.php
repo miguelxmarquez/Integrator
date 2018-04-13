@@ -180,7 +180,7 @@ class Integrator {
                     foreach ($data as $key => $value) {
                             # Formato WalletInData
                             $array_wallet = array(
-                              'idCustomer' => $data[$key][3],
+                              'idCustomer' => trim(strval($data[$key][3])),
                               'invoiceNumber' => trim(strval($data[$key][1]."-".$data[$key][2])),
                               'totalValue' => round(($data[$key][4]), 2),
                               'balance' => round(floatval($data[$key][5]), 2),
