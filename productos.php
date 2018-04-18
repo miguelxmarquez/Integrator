@@ -19,7 +19,7 @@ require_once '..\api_tcintegrator\indata_ws\inDataLogic.php';
       // Valida Ruta, Archivo y Lectura
       $resource->ValidatePath($kardex_file);
       // Execute Method for inDataLogic
-      print_r($resource->KardexInData($resource->ReadCSV($kardex_file)));
+      $resource->KardexInData($resource->ReadCSV($kardex_file));
 
   } catch (Exception $e) {
 
