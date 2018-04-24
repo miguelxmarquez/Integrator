@@ -1,6 +1,6 @@
 <?php
 /*
-*   lalider/Integrator.php
+*   Integrator/Integrator.php
 */
 // Before: composer autoload
 require_once 'vendor\autoload.php';
@@ -24,7 +24,6 @@ date_default_timezone_set('America/Bogota');
 class Integrator {
 
 //--------------------------------------------------------------------
-    // Return Array Cliente/InData from CSV
     public static function ClientInData($data){
 
       $tc = new inDataLogic();
@@ -74,7 +73,6 @@ class Integrator {
 
 
 //--------------------------------------------------------------------
-    // Return Array Credit/InData from CSV
     public static function CreditInData($data){
 
       $tc = new inDataLogic();
@@ -116,7 +114,6 @@ class Integrator {
 
 
 //--------------------------------------------------------------------
-    // Return Array Sede/InData from CSV
     public static function SeatInData($data){
 
       $tc = new inDataLogic();
@@ -168,7 +165,6 @@ class Integrator {
 
 
 //--------------------------------------------------------------------
-    // Return Array Cartera/InData from CSV
     public static function WalletInData($data){
 
       $tc = new inDataLogic();
@@ -213,7 +209,6 @@ class Integrator {
     }
 
 //--------------------------------------------------------------------
-    // Return Array Kardex/InData from CSV
     public static function KardexInData($data){
 
       $tc = new inDataLogic();
@@ -227,7 +222,7 @@ class Integrator {
                             $array_kardex = array(
                             'idProduct' => trim(strval($data[$key][0])),
                             'code' => (trim(strval($data[$key][1])) === '') ? trim(strval($data[$key][0])) : trim(strval($data[$key][1])),
-                            'productRef' => Integrator::CleanString($a = $data[$key][3]),
+                            'productRef' => trim(strval($data[$key][0])),
                             'name' => Integrator::CleanString(Integrator::Signal(($b = $data[$key][2]))),
                             'unit' => trim(strval($data[$key][5])),
                             'currencySymbol' => '$',
