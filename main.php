@@ -1,9 +1,9 @@
 <?php
 require_once "Integrator.php";
 
-$gestor = new Integrator();
-
-
+// New Resource Integrator
+$resource = new Integrator();
+$fecha = date('YmdH');
 echo "Bienvenido a Integrator\n";
 echo "Desesa realizar la importacion? Escriba 'SI' para continuar: ";
 $handle = fopen ("php://stdin","r");
@@ -25,8 +25,27 @@ $line = fgets($handle);
 switch ($line) {
     case 1:
         echo "La Tabla Clientes sera importada, no podra reversar esta accion. Escriba 'SI' para continuar: ";
-
         $line = fgets($handle);
+        if(trim($line) != 'SI'){
+            echo "Buscando Archivos..!\n";
+            sleep(3000);
+            // CSV Path/Name
+            $kardex_file = getcwd().'/public/' . 'kardex.CSV';
+            $kardex_new = getcwd().'/public/Procesando/' . $fecha .'kardex.CSV';
+            mkdir(dirname($kardex_new), 0777, true);
+            if (!copy($kardex_file, $kardex_new)) {
+            echo "Error al copiar $fichero...\n";
+            }
+            require_once 'productos.php';
+            // Valida Ruta, Archivo y Lectura
+            $resource->ValidatePath($kardex_file);
+            // Execute Method for inDataLogic
+            // $resource->KardexInData($resource->ReadCSV($kardex_file));
+
+
+            exit;
+        }
+
         break;
     case 2:
         echo "La Tabla Sedes sera importada, no podra reversar esta accion. Escriba 'SI' para continuar: ";
