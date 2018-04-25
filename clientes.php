@@ -19,7 +19,7 @@ require_once '..\api_tcintegrator\indata_ws\inDataLogic.php';
       // Valida Ruta, Archivo y Lectura
       $resource->ValidatePath($client_file);
       // Execute Method for inDataLogic
-      var_dump($resource->ClientInData($resource->ReadCSV($client_file)));
+      $resource->ClientInData($resource->ReadCSV($client_file));
 
   } catch (Exception $e) {
 

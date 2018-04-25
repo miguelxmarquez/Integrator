@@ -15,6 +15,7 @@ use Webmozart\Assert\Assert;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 date_default_timezone_set('America/Bogota');
+
 /*
 *
 *   # Integrator Class
@@ -221,8 +222,8 @@ class Integrator {
                             # Formato KardexInData
                             $array_kardex = array(
                             'idProduct' => trim(strval($data[$key][0])),
-                            'code' => (trim(strval($data[$key][1])) === '') ? trim(strval($data[$key][0])) : trim(strval($data[$key][1])),
-                            'productRef' => trim(strval($data[$key][0])),
+                            'code' => trim(strval($data[$key][0])),
+                            'productRef' => (trim(strval($data[$key][1])) === '') ? trim(strval($data[$key][0])) : trim(strval($data[$key][1])),
                             'name' => Integrator::CleanString(Integrator::Signal(($b = $data[$key][2]))),
                             'unit' => trim(strval($data[$key][5])),
                             'currencySymbol' => '$',
@@ -266,25 +267,93 @@ class Integrator {
             }
     }
 
-//--------------------------------------------------------------------
+/*********************************************************        UTILITARIOS        ******************************************************************************/
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------
     // Lee Archivo CSV
     public static function ReadCSV($file){
 
-      $data = [];
+        $data = [];
+  
+            if (($archive = fopen($file, "r")) !== FALSE) {
+                // Situamos el puntero al principio del archivo
+                fseek($archive, 0);
+                while (($line = fgetcsv($archive, 0, ',', '"', "//")) !== FALSE) {
+                  array_map('utf8_encode', $line);
+                  array_push($data, $line);
+                }
+              fclose($archive);
+            }
+        // Retorna Arreglo Multidimensional
+        return $data;
+    }
+  
+//--------------------------------------------------------------------
+    // Compara Archivos CSV y Retorna la Diferencia
+    public static function CompareCSV($file_new, $file_last){
+        $data = [];
+        // Comparacion de Archivo Nuevo con Respecto al Ultimo Generado
+        $data = array_diff_assoc($file_new, $file_last);
 
-          if (($archive = fopen($file, "r")) !== FALSE) {
-              // Situamos el puntero al principio del archivo
-              fseek($archive, 0);
-              while (($line = fgetcsv($archive, 0, ',', '"', "//")) !== FALSE) {
-                array_map('utf8_encode', $line);
-                array_push($data, $line);
-              }
-            fclose($archive);
-          }
-      // Retorna Arreglo Multidimensional
-      return $data;
+        return $data;
+    }
+  
+//--------------------------------------------------------------------
+    // Copia Archivo CSV
+    public static function CopyCSV($file_name, $folder, $fecha){
+
+        if (copy($file_name, 'public/tmp/'. $folder .'/'.$fecha.'.CSV')) {
+            $log = "Se ha copiado el archivo corretamente!\n";
+        } else {
+            $log = "Se produjo un error al copiar el fichero!\n";
+        }
+
+      return $log;
+    }
+ 
+//--------------------------------------------------------------------
+    // Lee Directorio, Ordena Archivos y Retorna Ultimo 
+    public static function LastCSV($file_name, $folder){
+        
+        try{ 
+                $ficheros  = scandir($file_name.$folder, 1);
+                $log = $ficheros[0];
+            } catch(Exception $e){
+			    echo 'Excepción capturada: ',  $e->getMessage(), "\n";
+		}
+
+      return $log;
     }
 
+//--------------------------------------------------------------------
+    // Crea Archivo CSV
+    public static function CreateCSV($datos, $folder, $name){
+
+        try{
+			// Nombre Archivo CSV y Parametros para fputcsv
+
+			$csvPath = 'C:\xampp4\htdocs\php\Integrator\public\tmp/'.$folder.'/'.$name;
+			$csvh = fopen($csvPath, 'a+');
+			$d = ',';
+			$e = '"';
+
+			// Creacion CSV (Si existe se actualiza, sino se crea uno nuevo cuando el minuto sea diferente)
+			foreach($datos as $record) {
+				//$data = $record->toArray(false); // false for the shallow conversion
+				if(fputcsv($csvh, $record, $d, $e)){
+					echo 'Archivo CSV Escrito! '.print_r($record).' \n';
+				}else{
+					echo 'Error en Escritura de Archivo CSV !';
+				}
+			}
+
+			fclose($csvh);
+
+		} catch(Exception $e){
+			echo 'Excepción capturada: ',  $e->getMessage(), "\n";
+		}
+	// Asignamos Valores a Nuestras Variables
+    }
+  
 //--------------------------------------------------------------------
     // Valida Variable, Ruta, Archivo y Lectura
     public static function ValidatePath($file){
@@ -425,7 +494,7 @@ class Integrator {
     }
 
 //--------------------------------------------------------------------
-    // Crea Log
+    // Crea Log de Migracion
     public static function LogMigration($type, $idx, $key, $event, $from, $row, $cath){
 
         $log = new Logger($type);
