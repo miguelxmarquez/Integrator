@@ -52,11 +52,11 @@ class Integrator {
                             // Insert On DataBase with API and Logging
                             try {
                               $cath = $tc->createCustomerTakeOrder($array_client);
-                              Integrator::LogMigration('ClientImport', $idx, $array_client[idCustomer], 'Sending', 'ClientInData', $array_client);
+                              Integrator::LogMigration('ClientImport', $idx, $array_client[idCustomer], 'Sending', 'ClientInData', $array_client, $cath);
                               echo 'Linea: #' . $idx . ', Campo Clave (ClientInData): ' . $array_client[idCustomer] . ', Retorno: ' .$cath . "\n";
 
                             } catch (Exception $e) {
-                              Integrator::LogMigration('Exception Catched: ', $idx, $array_client[idCustomer], $e, 'ClientInData', $array_client );
+                              Integrator::LogMigration('Exception Catched: ', $idx, $array_client[idCustomer], $e, 'ClientInData', $array_client);
                             }
                             //break;
                     }
@@ -93,7 +93,7 @@ class Integrator {
                             // Insert On DataBase with API and Logging
                             try {
                               $cath = $tc->setStatusCredit($array_credit);;
-                              Integrator::LogMigration('CreditImport', $idx, $array_credit[idCustomer], 'Sending', 'CreditInData', $array_credit);
+                              Integrator::LogMigration('CreditImport', $idx, $array_credit[idCustomer], 'Sending', 'CreditInData', $array_credit, $cath);
                               echo 'Linea: #' . $idx . ', Campo Clave (CreditInData): ' . $array_credit[idCustomer] . ', Retorno: ' .$cath . "\n";
 
                             } catch (Exception $e) {
@@ -143,7 +143,7 @@ class Integrator {
                             // Insert On DataBase with API and Logging
                             try {
                               $cath = $tc->createCustomerOfficeTakeOrder($array_seat);;
-                              Integrator::LogMigration('SeatImport', $idx, $array_seat[idCustomer], 'Sending', 'SeatInData', $array_seat);
+                              Integrator::LogMigration('SeatImport', $idx, $array_seat[idCustomer], 'Sending', 'SeatInData', $array_seat, $cath);
                               echo 'Linea: #' . $idx . ', Campo Clave (SeatInData): ' . $array_seat[idCustomer] . ', Retorno: ' .$cath . "\n";
 
                             } catch (Exception $e) {
@@ -189,7 +189,7 @@ class Integrator {
                         // Insert On DataBase with API and Logging
                         try {
                           $cath = $tc->createCustomerCartera($array_wallet);
-                          Integrator::LogMigration('WalletImport', $idx, $array_wallet[idCustomer], 'Sending', 'WalletInData', $array_wallet);
+                          Integrator::LogMigration('WalletImport', $idx, $array_wallet[idCustomer], 'Sending', 'WalletInData', $array_wallet, $cath);
                           echo 'Linea: #' . $idx . ', Campo Clave (WalletInData): ' . $array_wallet[idCustomer] . ', Retorno: ' .$cath . "\n";
 
                         } catch (Exception $e) {
@@ -247,7 +247,7 @@ class Integrator {
                             try {
 
                               $cath = $tc->createProduct($array_kardex);
-                              Integrator::LogMigration('KardexImport', $idx, $array_kardex[idProduct], 'Sending', 'KardexInData', $array_kardex);
+                              Integrator::LogMigration('KardexImport', $idx, $array_kardex[idProduct], 'Sending', 'KardexInData', $array_kardex, $cath);
                               echo 'Linea: #' . $idx . ', Campos Clave (KardexInData): ' . $array_kardex[idProduct] . ', Retorno: ' .$cath . "\n";
 
                             } catch (Exception $e) {
@@ -426,7 +426,7 @@ class Integrator {
 
 //--------------------------------------------------------------------
     // Crea Log
-    public static function LogMigration($type, $idx, $key, $event, $from, $row){
+    public static function LogMigration($type, $idx, $key, $event, $from, $row, $cath){
 
         $log = new Logger($type);
         $fecha = date('YmdH');
@@ -438,7 +438,7 @@ class Integrator {
         $noticeHandler = new StreamHandler($dir.$fecha.$ext, Logger::NOTICE);
         $noticeHandler->setFormatter($formatter);
         $log->pushHandler($noticeHandler);
-        $log->notice($event. ' in: Linea: #' . $idx . ', Campo Clave: ' . $key . ', Registro::[' . $rec . ']');
+        $log->notice($event. ' in: Linea: #' . $idx . ', Campo Clave: ' . $key . ', Registro::[' . $rec . ']' . ', Respuesta Servidor: ' .$cath);
 
     }
 

@@ -1,9 +1,16 @@
 <?php
+/*
+*   # Integrator/main.php
+*
+*/
+// Integrator Class
 require_once "Integrator.php";
 
 // New Resource Integrator
 $resource = new Integrator();
 $fecha = date('YmdH');
+
+/***  Menu de Bienvenida ***/ 
 echo "Bienvenido a Integrator\n";
 echo "Desesa realizar la importacion? Escriba 'SI' para continuar: ";
 $handle = fopen ("php://stdin","r");
@@ -13,6 +20,8 @@ if(trim($line) != 'SI'){
     exit;
 }
 fclose($handle);
+
+
 echo "\n"; 
 echo "Selecciones la tabla que desea importar\n";
 echo "1. Clientes\n";
@@ -26,22 +35,25 @@ switch ($line) {
     case 1:
         echo "La Tabla Clientes sera importada, no podra reversar esta accion. Escriba 'SI' para continuar: ";
         $line = fgets($handle);
-        if(trim($line) != 'SI'){
-            echo "Buscando Archivos..!\n";
-            sleep(3000);
-            // CSV Path/Name
-            $kardex_file = getcwd().'/public/' . 'kardex.CSV';
-            $kardex_new = getcwd().'/public/Procesando/' . $fecha .'kardex.CSV';
-            mkdir(dirname($kardex_new), 0777, true);
-            if (!copy($kardex_file, $kardex_new)) {
-            echo "Error al copiar $fichero...\n";
-            }
-            require_once 'productos.php';
-            // Valida Ruta, Archivo y Lectura
-            $resource->ValidatePath($kardex_file);
-            // Execute Method for inDataLogic
-            // $resource->KardexInData($resource->ReadCSV($kardex_file));
+        if(trim($line) == 'SI'){
+            echo "Ejecutando tarea Clientes..!\n";
+            
+            try {
 
+                // CSV Path/Name
+                $client_file = getcwd().'/public/' . 'cliente.CSV';
+                // Valida Ruta, Archivo y Lectura
+                $resource->ValidatePath($client_file);
+                // Execute Method for inDataLogic
+                $resource->ClientInData($resource->ReadCSV($client_file));
+          
+            } catch (Exception $e) {
+          
+                $type = 'inDataLogic-Client';
+                $log = new Integrator();
+                $log->CreateLog($type, $e);
+          
+            }
 
             exit;
         }
