@@ -46,7 +46,9 @@ class Integrator {
                             'isBlocked' => 0,
                             'state' => 1,
                             'availableCredit' => floatval($data[$key][5]),
-                            'idPricelist' => intval($data[$key][9])
+                            'idPricelist' => intval($data[$key][9]),
+                            'email' => intval($data[$key][11])
+
                             );
                             // Indice alterno
                             $idx++;
