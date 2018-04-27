@@ -4,7 +4,7 @@
 */
 // Before: composer autoload
 require_once 'vendor\autoload.php';
-require_once '..\api_tcintegrator\indata_ws\inDataLogic.php';
+require_once 'api_tcintegrator\indata_ws\inDataLogic.php';
 
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
@@ -40,29 +40,29 @@ class Integrator {
                             $array_client = array(
                             'idCustomer' => trim(strval($data[$key][0])),
                             'identification' => trim(strval($data[$key][2])),
-                            'businessName' => Integrator::CleanString($data[$key][1]),
-                            'tradename' => trim(strval($data[$key][2])),
+                            'businessName' => Integrator::CleanBussinessName(Integrator::CleanString($data[$key][1])),
+                            'tradename' => Integrator::CleanName(Integrator::CleanString($data[$key][1])),
                             'credit' => floatval($data[$key][4]),
                             'isBlocked' => 0,
                             'state' => 1,
                             'availableCredit' => floatval($data[$key][5]),
                             'idPricelist' => intval($data[$key][9]),
-                            'email' => intval($data[$key][11])
-
+							'email' => Integrator::CleanString($data[$key][11]),
                             );
                             // Indice alterno
                             $idx++;
                             // Insert On DataBase with API and Logging
                             try {
                               $cath = $tc->createCustomerTakeOrder($array_client);
-                              Integrator::LogMigration('ClientImport', $idx, $array_client[idCustomer], 'Sending', 'ClientInData', $array_client, $cath);
-                              echo 'Linea: #' . $idx . ', Campo Clave (ClientInData): ' . $array_client[idCustomer] . ', Retorno: ' .$cath . "\n";
+                              Integrator::LogMigration('ClientImport', $idx, $array_client['idCustomer'], 'Sending', 'ClientInData', $array_client, $cath);
+                              echo 'Linea: #' . $idx . ', Campo Clave (ClientInData): ' . $array_client['idCustomer'] . ', Retorno: ' .$cath . "\n";
 
                             } catch (Exception $e) {
-                              Integrator::LogMigration('Exception Catched: ', $idx, $array_client[idCustomer], $e, 'ClientInData', $array_client);
+                              Integrator::LogMigration('Exception Catched: ', $idx, $array_client['idCustomer'], $e, 'ClientInData', $array_client);
                             }
                             //break;
                     }
+					
                 return $cath;
 
             } catch (Exception $e) {
@@ -96,11 +96,11 @@ class Integrator {
                             // Insert On DataBase with API and Logging
                             try {
                               $cath = $tc->setStatusCredit($array_credit);;
-                              Integrator::LogMigration('CreditImport', $idx, $array_credit[idCustomer], 'Sending', 'CreditInData', $array_credit, $cath);
-                              echo 'Linea: #' . $idx . ', Campo Clave (CreditInData): ' . $array_credit[idCustomer] . ', Retorno: ' .$cath . "\n";
+                              Integrator::LogMigration('CreditImport', $idx, $array_credit['idCustomer'], 'Sending', 'CreditInData', $array_credit, $cath);
+                              echo 'Linea: #' . $idx . ', Campo Clave (CreditInData): ' . $array_credit['idCustomer'] . ', Retorno: ' .$cath . "\n";
 
                             } catch (Exception $e) {
-                              Integrator::LogMigration('Exception Catched: ', $idx, $array_credit[idCustomer], $e, 'CreditInData', $array_credit);
+                              Integrator::LogMigration('Exception Catched: ', $idx, $array_credit['idCustomer'], $e, 'CreditInData', $array_credit);
                             }
                             //break;
                     }
@@ -146,11 +146,11 @@ class Integrator {
                             // Insert On DataBase with API and Logging
                             try {
                               $cath = $tc->createCustomerOfficeTakeOrder($array_seat);;
-                              Integrator::LogMigration('SeatImport', $idx, $array_seat[idCustomer], 'Sending', 'SeatInData', $array_seat, $cath);
-                              echo 'Linea: #' . $idx . ', Campo Clave (SeatInData): ' . $array_seat[idCustomer] . ', Retorno: ' .$cath . "\n";
+                              Integrator::LogMigration('SeatImport', $idx, $array_seat['idCustomer'], 'Sending', 'SeatInData', $array_seat, $cath);
+                              echo 'Linea: #' . $idx . ', Campo Clave (SeatInData): ' . $array_seat['idCustomer'] . ', Retorno: ' .$cath . "\n";
 
                             } catch (Exception $e) {
-                              Integrator::LogMigration('Exception Catched: ', $idx, $array_seat[idCustomer], $e, 'SeatInData', $array_seat);
+                              Integrator::LogMigration('Exception Catched: ', $idx, $array_seat['idCustomer'], $e, 'SeatInData', $array_seat);
                             }
                             // break;
                     }
@@ -192,11 +192,11 @@ class Integrator {
                         // Insert On DataBase with API and Logging
                         try {
                           $cath = $tc->createCustomerCartera($array_wallet);
-                          Integrator::LogMigration('WalletImport', $idx, $array_wallet[idCustomer], 'Sending', 'WalletInData', $array_wallet, $cath);
-                          echo 'Linea: #' . $idx . ', Campo Clave (WalletInData): ' . $array_wallet[idCustomer] . ', Retorno: ' .$cath . "\n";
+                          Integrator::LogMigration('WalletImport', $idx, $array_wallet['idCustomer'], 'Sending', 'WalletInData', $array_wallet, $cath);
+                          echo 'Linea: #' . $idx . ', Campo Clave (WalletInData): ' . $array_wallet['idCustomer'] . ', Retorno: ' .$cath . "\n";
 
                         } catch (Exception $e) {
-                          Integrator::LogMigration('Exception Catched: ', $idx, $array_wallet[idCustomer], $e, 'WalletInData', $array_wallet);
+                          Integrator::LogMigration('Exception Catched: ', $idx, $array_wallet['idCustomer'], $e, 'WalletInData', $array_wallet);
                         }
                     }
 
@@ -225,7 +225,7 @@ class Integrator {
                             $array_kardex = array(
                             'idProduct' => trim(strval($data[$key][0])),
                             'code' => trim(strval($data[$key][0])),
-                            'productRef' => (trim(strval($data[$key][1])) === '') ? trim(strval($data[$key][0])) : trim(strval($data[$key][1])),
+                            'productRef' => trim(strval($data[$key][19])),
                             'name' => Integrator::CleanString(Integrator::Signal(($b = $data[$key][2]))),
                             'unit' => trim(strval($data[$key][5])),
                             'currencySymbol' => '$',
@@ -236,7 +236,7 @@ class Integrator {
                             'categoryName' => trim(strval($data[$key][13])),
                             'idSubcategory' => '',
                             'subcategoryName' => trim(strval($data[$key][14])),
-                            'idLine' => '',
+                            'idLine' => trim(strval($data[$key][20])),
                             'lineName' => '',
                             'supplierName' => '',
                             'price' => 0,
@@ -247,16 +247,17 @@ class Integrator {
                             // Indice alterno
                             $idx++;
                             // Insert On DataBase with API and Logging
-                            try {
+                            
+							try {
 
                               $cath = $tc->createProduct($array_kardex);
-                              Integrator::LogMigration('KardexImport', $idx, $array_kardex[idProduct], 'Sending', 'KardexInData', $array_kardex, $cath);
-                              echo 'Linea: #' . $idx . ', Campos Clave (KardexInData): ' . $array_kardex[idProduct] . ', Retorno: ' .$cath . "\n";
+                              Integrator::LogMigration('KardexImport', $idx, $array_kardex['idProduct'], 'Sending', 'KardexInData', $array_kardex, $cath);
+                              echo 'Linea: #' . $idx . ', Campos Clave (KardexInData): ' . $array_kardex['idProduct'] . ', Retorno: ' .$cath . "\n";
 
-                            } catch (Exception $e) {
-                              Integrator::LogMigration('Exception Catched: ', $idx, $array_kardex[idProduct], $e, 'KardexInData', $array_kardex);
+							} catch (Exception $e) {
+                              Integrator::LogMigration('Exception Catched: ', $idx, $array_kardex['idProduct'], $e, 'KardexInData', $array_kardex);
                             }
-                            //break;
+                            break;
                     }
                 return $cath;
 
@@ -279,7 +280,7 @@ class Integrator {
             if (($archive = fopen($file, "r")) !== FALSE) {
                 // Situamos el puntero al principio del archivo
                 fseek($archive, 0);
-                while (($line = fgetcsv($archive, 0, ',', '"', "//")) !== FALSE) {
+                while (($line = fgetcsv($archive, 0, ',')) !== FALSE) {
                   array_map('utf8_encode', $line);
                   array_push($data, $line);
                 }
@@ -431,7 +432,32 @@ class Integrator {
           return $string;
 
     }
+//--------------------------------------------------------------------
+    // Format BussinessName
+    public static function CleanBussinessName($value){
 
+        $cadena = explode('(',$value);
+		$tmp = explode(')', $cadena[1]);
+		$bn = trim(implode($tmp));
+		if($bn == ""){
+			$bn = $value;
+		}
+        return $bn;
+
+    }
+//--------------------------------------------------------------------
+    // Format Name
+    public static function CleanName($value){
+
+        $cadena = explode('(',$value);
+		$bn = trim($cadena[0]);
+		if($bn == ""){
+			$bn = $value;
+		}
+        return $bn;
+
+    }
+//--------------------------------------------------------------------
     public static function Signal($string){
 
         $string = trim($string);
@@ -502,7 +528,7 @@ class Integrator {
         $log = new Logger($type);
         $fecha = date('YmdH');
         $f_dir = date('Ymd');
-        $dir = getcwd().'\log\migracion-'.$f_dir.'\import-'. $from .'-';
+        $dir = 'C:\INDATA\Migracion\Integrator-testing\log\migracion-'.$f_dir.'\import-'. $from .'-';
         $ext = '.log';
         $rec = implode(',' , $row);
         $formatter = new LineFormatter(null, null, false, true);
