@@ -2,8 +2,9 @@
 /*
 *   Integrator/Integrator.php
 */
-// Before: composer autoload
+// Composer Autoload
 require_once 'vendor\autoload.php';
+// API inDataLogic
 require_once 'api_tcintegrator\indata_ws\inDataLogic.php';
 
 use Monolog\Logger;
@@ -19,7 +20,7 @@ date_default_timezone_set('America/Bogota');
 /*
 *
 *   # Integrator Class
-*   # lalider/Integrator.php
+*   # Integrator/Integrator.php
 *
 */
 class Integrator {
@@ -47,7 +48,7 @@ class Integrator {
                             'state' => 1,
                             'availableCredit' => floatval($data[$key][5]),
                             'idPricelist' => intval($data[$key][9]),
-							'email' => Integrator::CleanString($data[$key][11]),
+							'email' => trim($data[$key][11]),
                             );
                             // Indice alterno
                             $idx++;
@@ -95,7 +96,7 @@ class Integrator {
                             $idx++;
                             // Insert On DataBase with API and Logging
                             try {
-                              $cath = $tc->setStatusCredit($array_credit);;
+                              $cath = $tc->setStatusCredit($array_credit);
                               Integrator::LogMigration('CreditImport', $idx, $array_credit['idCustomer'], 'Sending', 'CreditInData', $array_credit, $cath);
                               echo 'Linea: #' . $idx . ', Campo Clave (CreditInData): ' . $array_credit['idCustomer'] . ', Retorno: ' .$cath . "\n";
 
@@ -141,18 +142,20 @@ class Integrator {
                             'contactPerson1' => trim(strval($data[$key][3])),
                             'cellphoneContact' => '',
                             'phoneNumber' => trim(strval($data[$key][7])),
+							'email' => Integrator::CleanString($data[$key][11]),
+
                             );
                             $idx++;
-                            // Insert On DataBase with API and Logging
+                            //Insert On DataBase with API and Logging
                             try {
-                              $cath = $tc->createCustomerOfficeTakeOrder($array_seat);;
+                              $cath = $tc->createCustomerOfficeTakeOrder($array_seat);
                               Integrator::LogMigration('SeatImport', $idx, $array_seat['idCustomer'], 'Sending', 'SeatInData', $array_seat, $cath);
                               echo 'Linea: #' . $idx . ', Campo Clave (SeatInData): ' . $array_seat['idCustomer'] . ', Retorno: ' .$cath . "\n";
 
                             } catch (Exception $e) {
                               Integrator::LogMigration('Exception Catched: ', $idx, $array_seat['idCustomer'], $e, 'SeatInData', $array_seat);
                             }
-                            // break;
+                            //break;
                     }
                 return $cath;
 
@@ -225,7 +228,7 @@ class Integrator {
                             $array_kardex = array(
                             'idProduct' => trim(strval($data[$key][0])),
                             'code' => trim(strval($data[$key][0])),
-                            'productRef' => trim(strval($data[$key][19])),
+                            'productRef' => (trim(strval($data[$key][19])) === '') ? trim(strval($data[$key][0])) : trim(strval($data[$key][19])),
                             'name' => Integrator::CleanString(Integrator::Signal(($b = $data[$key][2]))),
                             'unit' => trim(strval($data[$key][5])),
                             'currencySymbol' => '$',
@@ -319,12 +322,16 @@ class Integrator {
         
         try{ 
                 $ficheros  = scandir($file_name.$folder, 1);
-                $log = $ficheros[0];
+                $file = $ficheros[0];
+				if($file == '..'){
+					echo "No existen ficheros en el directorio";
+					$file = false;
+				}
             } catch(Exception $e){
 			    echo 'Excepción capturada: ',  $e->getMessage(), "\n";
 		}
 
-      return $log;
+      return $file;
     }
 
 //--------------------------------------------------------------------
@@ -334,29 +341,73 @@ class Integrator {
         try{
 			// Nombre Archivo CSV y Parametros para fputcsv
 
-			$csvPath = 'C:\xampp4\htdocs\php\Integrator\public\tmp/'.$folder.'/'.$name;
+			$csvPath = 'public\tmp/'.$folder.'/'.$name;
 			$csvh = fopen($csvPath, 'a+');
 			$d = ',';
 			$e = '"';
 
 			// Creacion CSV (Si existe se actualiza, sino se crea uno nuevo cuando el minuto sea diferente)
 			foreach($datos as $record) {
-				//$data = $record->toArray(false); // false for the shallow conversion
+				
 				if(fputcsv($csvh, $record, $d, $e)){
-					echo 'Archivo CSV Escrito! '.print_r($record).' \n';
+                    echo 'Archivo CSV Escrito! '.$csvPath;
+                    echo "\n";
+					
 				}else{
-					echo 'Error en Escritura de Archivo CSV !';
+					echo 'Error en Escritura de Archivo CSV!!!';
 				}
 			}
 
 			fclose($csvh);
+			
+			return $name;
 
 		} catch(Exception $e){
 			echo 'Excepción capturada: ',  $e->getMessage(), "\n";
 		}
-	// Asignamos Valores a Nuestras Variables
     }
-  
+
+//--------------------------------------------------------------------
+    // Tarea de Migracion
+    public static function MigraCSV(){
+
+        $fecha = date('YmdHis');
+        $name = $fecha.'-0'.'.CSV';
+        // CSV Path/Name
+        $file_dir = 'public/tmp/';
+        $file_name = '../../Consulta/' . 'cliente.CSV';
+        $folder = 'clientes';
+        // Valida Ruta, Archivo y Lectura
+        Integrator::ValidatePath($file_name);
+        // Ultimo CSV Generado hasta la Fecha
+        echo "Ultimo CSV generado";                
+        echo "\n";
+        echo $last = Integrator::LastCSV($file_dir, $folder);
+        echo "\n";
+        echo $file_tmp = $file_dir.$folder."/".$last;
+        echo "\n";
+        $file_last = Integrator::ReadCSV($file_tmp);
+        // Copia de CSV Nuevo
+        echo Integrator::CopyCSV($file_name, $folder, $fecha);
+        // Ultimo CSV Generado (Copia Nuevo)
+        echo $new = Integrator::LastCSV($file_dir, $folder);
+        echo "\n";
+        echo $file_tmp = $file_dir.$folder."/".$new;    
+        echo "\n";
+        $file_new = Integrator::ReadCSV($file_tmp);
+        $arreglo = Integrator::CompareCSV($file_new, $file_last);
+        if(empty($arreglo) == FALSE){
+            
+            $client_file = Integrator::CreateCSV($arreglo, $folder, $name);
+            echo "Ruta";
+            echo "\n";
+            echo $client_file = 'C:\INDATA\Migracion\Integrator-testing\public\tmp\clientes'."/".$client_file;
+            
+        }
+        print_r(Integrator::ReadCSV($client_file));
+        
+    }
+
 //--------------------------------------------------------------------
     // Valida Variable, Ruta, Archivo y Lectura
     public static function ValidatePath($file){
@@ -424,7 +475,7 @@ class Integrator {
     }
 
 //--------------------------------------------------------------------
-    // Format DateInData
+    // Limpiar Cadena para Correos y Nombres
     public static function CleanString($value){
 
           $search = ['¥', '½', '¾', 'ö', '¢', 'ç', 'ä', 'å', '÷', 'ó', '«', '®', '©', '¸', '?'];
